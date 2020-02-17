@@ -55,8 +55,8 @@ void Beeper::refresh(long millis) {
 }
 
 void Beeper::sound(bool play) {
-  if (play)
-    tone(pin, frequency);
-  else
-    noTone(pin);
+//  if (play)
+//    tone(pin, frequency);
+//  else
+//    noTone(pin);
 }

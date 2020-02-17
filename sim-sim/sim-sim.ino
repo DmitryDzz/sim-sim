@@ -1,7 +1,7 @@
 #include "button.h"
 #include "led.h"
 #include "beeper.h"
-#include <GSM.h>
+#include "gsm.h"
 
 using namespace telephone;
 
@@ -22,67 +22,18 @@ Button btnCallNumber4(0, 1023);
 Led led(13);
 Beeper beeper(11);
 
-#define SIM_PIN_NUMBER ""
-GSM gsmAccess;
-GSMVoiceCall gsmVoiceCall;
+#define SIM_PIN_CODE ""
+Gsm gsm(3, 2);
 
 int freq = 200;
 
 void btnCallNumberHandler(int btnIndex, telephone::ButtonState btnState) {
   if (btnState == PRESSED) {
-    if (btnIndex == 0) {
-//      freq -= 100;
-//      tone(11, freq);
-//      delay(200);
-//      noTone(11);
-//      Serial.print("Freq = ");
-//      Serial.println(freq);
-      led.setBlink(500, 1);
-      beeper.beep(500);
-    } else if (btnIndex == 1) {
-//      freq += 100;
-//      tone(11, freq);
-//      delay(200);
-//      noTone(11);
-//      Serial.print("Freq = ");
-//      Serial.println(freq);
-      led.setBlink(500, 3);
-      beeper.beep(500, 3);
-    } else if (btnIndex == 2) {
-//      tone(11, freq);
-//      delay(200);
-//      noTone(11);
-//      Serial.print("Freq = ");
-//      Serial.println(freq);
-      led.setBlink(500);
-      beeper.beep(500, 5);
-    } else if (btnIndex == 3) {
-//      freq = 2100;
-//      tone(11, freq);
-//      delay(200);
-//      noTone(11);
-//      Serial.print("Freq = ");
-//      Serial.println(freq);
-      led.setOn();
-      beeper.setFrequency(3900);
-      beeper.stop();
-    } else if (btnIndex == 4) {
-      freq = 3900;
-//      tone(11, freq);
-//      delay(200);
-//      noTone(11);
-//      Serial.print("Freq = ");
-//      Serial.println(freq);
-      led.setOff();
-      beeper.setFrequency(2100);
-      beeper.stop();
-    }
-        
-    //Serial.print("Pressed ");
+    debugPrint("Pressed ");
   } else {
-    //Serial.print("Released ");
+    debugPrint("Released ");
   }
-  //Serial.println(btnIndex);
+  debugPrintln(btnIndex);
 }
 
 void btnCallNumberHandler0(telephone::ButtonState btnState) {
@@ -117,9 +68,19 @@ void debugPrint(String text) {
   Serial.print(text);
 }
 
+void debugPrint(int number) {
+  Serial.print(number);
+}
+
 void debugPrintln(String text) {
   Serial.println(text);
 }
+
+void debugPrintln(int number) {
+  Serial.println(number);
+}
+
+bool connectedToNetwork;
 
 void setup()
 {
@@ -138,20 +99,49 @@ void setup()
   btnCallNumber4.setHandler(btnCallNumberHandler4);
 
   // No network blinking:
+  connectedToNetwork = false;
   led.setBlink(250);
-  debugPrint("Connecting..");
-  while (true) {
-    debugPrint(".");
-    if (gsmAccess.begin(SIM_PIN_NUMBER) == GSM_READY) {
-      debugPrintln("done");
-      break;
-    }
-    delay(1000);
-  }
-  led.setOff();
 
-  // To be sure that the modem reports on incoming events correctly:
-  gsmVoiceCall.hangCall();
+  int r = gsm.checkHandshake();
+//  Serial.print("checkHandshake: ");
+//  Serial.println(r);
+
+  r = gsm.signalQuality();
+  
+//  debugPrint("Connecting..");
+//  if (gsmAccess.begin(SIM_PIN_CODE, false, false) != 0) {
+//    debugPrint(".");
+//    debugPrintln("ERROR");
+//    return;
+//  }
+//
+//  int result;
+//  do {
+//    result = gsmAccess.ready();
+//    debugPrint(".");
+//    delay(1000);
+//  } while (result == 0);
+//
+//  if (result == 1) {
+//    debugPrintln("done");
+//    led.setOff();
+//    connectedToNetwork = true;
+//  } else if (result > 1) {
+//    debugPrintln("ERROR!");
+//    int stat = gsmAccess.getStatus();
+//    debugPrint("Status=");
+//    debugPrintln(stat);
+//    int accessAlive = gsmAccess.isAccessAlive();
+//    debugPrint("isAccessAlive=");
+//    debugPrintln(accessAlive);
+//    return;
+//  }
+//
+//
+//  
+//
+//  // To be sure that the modem reports on incoming events correctly:
+//  gsmVoiceCall.hangCall();
 }
 
 void loop()
@@ -160,4 +150,7 @@ void loop()
   refreshButtons(currentMillis);
   led.refresh(currentMillis);
   beeper.refresh(currentMillis);
+
+  if (!connectedToNetwork) return;
+  //...
 }
